@@ -1,0 +1,52 @@
+# with service ClusterIp i can connect to the container inside the pod (using the k8s internal ip)
+# with nodeport i gain external access to the pod
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami-service
+spec:
+  selector:
+    app: whoami
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami-nodeport
+  labels:
+    app: whoami-nodeport
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30008
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: whoami
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami
+  labels:
+    app: whoami-deploy
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+      - name: whoami      
+        image: containous/whoami:v1.4.0
+        ports:
+        - containerPort: 80
